@@ -21,7 +21,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
-
+STOCK_API_KEY = os.getenv("STOCK_API_KEY")
+STOCK_API_BASE_URL = os.getenv("STOCK_API_BASE_URL")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
