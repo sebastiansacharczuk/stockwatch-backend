@@ -1,6 +1,13 @@
 from django.http import JsonResponse
-from .stockapi.polygon_client import PolygonClient
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
+from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
 
+from .serializers import UserRegistrationSerializer
+from .stockapi.polygon_client import PolygonClient
 
 def get_search_tickers(request):
     try:
@@ -125,3 +132,60 @@ def get_tickers_snapshot(request):
             'message': 'An unexpected error occurred',
             'details': str(e)
         }, status=500)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register_user(request):
+    serializer = UserRegistrationSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return JsonResponse({'message': 'User created successfully'}, status=201)
+    return JsonResponse(serializer.errors, status=400)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def token_obtain_pair(request):
+    serializer = TokenObtainPairSerializer(data=request.data)
+    if serializer.is_valid():
+        return JsonResponse(serializer.validated_data, status=200)
+    return JsonResponse(serializer.errors, status=400)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def authenticated_endpoint(request):
+    return JsonResponse({"status": "success"}, status=200)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def refresh_access_token(request):
+    try:
+        refresh_token = request.data.get('refresh')
+
+        if not refresh_token:
+            return JsonResponse({"status": "success", "message": "Refresh token is required"}, status=400)
+
+        token = RefreshToken(refresh_token)
+        new_access_token = token.access_token
+
+        return JsonResponse({"status": "success", "access": new_access_token.__str__()},
+            status=200
+        )
+
+    except Exception as e:
+        return JsonResponse({"status": "success", "message": f"Logout failed: {str(e)}"}, status=400)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def logout(request):
+    try:
+        refresh_token = request.data.get('refresh')
+        if not refresh_token:
+            return JsonResponse({"status": "success", "message": "Refresh token is required"}, status=400)
+
+        token = RefreshToken(refresh_token)
+        token.blacklist()
+        return JsonResponse({"status": "success", "message": "Successfully logged out"}, status=205)
+    except Exception as e:
+        return JsonResponse({"status": "success", "message": f"Logout failed: {str(e)}"}, status=400)
