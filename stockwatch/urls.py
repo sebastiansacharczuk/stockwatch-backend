@@ -21,5 +21,5 @@ from core import urls as core_urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include(core_urls)),
+    path('api/', include(core_urls)),
 ]

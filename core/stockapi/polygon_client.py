@@ -129,7 +129,8 @@ class PolygonClient:
 
         url = f"{self.base_url}/v3/reference/tickers/{ticker}"
         params = {
-            "apiKey": self.api_key
+            "apiKey": self.api_key,
+            "date": date
         }
 
         # Add date parameter if provided
@@ -142,3 +143,31 @@ class PolygonClient:
             return response.json()
         except requests.exceptions.RequestException as e:
             raise requests.exceptions.RequestException(f"Failed to retrieve ticker details: {str(e)}")
+
+
+    def get_news(
+            self,
+            ticker: str = None,
+            published_utc: str = None,
+            order: str = "asc",
+            limit: int = 15,
+            sort: str = "published_utc"
+    ) -> Dict[str, Any]:
+        url = f"{self.base_url}/v2/reference/news"
+        params = {
+            "apiKey": self.api_key,
+            "ticker": ticker,
+            "published_utc": published_utc,
+            "order": order,
+            "limit": limit,
+            "sort": sort,
+        }
+
+        try:
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            raise requests.exceptions.RequestException(f"Failed to retrieve news: {str(e)}")
+        pass
+

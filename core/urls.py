@@ -2,19 +2,21 @@ from django.urls import path
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenBlacklistView, TokenRefreshView
 
-from core import views
+from core.views.stock_views import *
+from core.views.user_views import *
 
 urlpatterns = [
     # user & JWT
-    path('register', views.register_user),
-    path('token_obtain_pair', views.token_obtain_pair),
-    path('refresh_access_token', views.refresh_access_token),
-    path('logout', views.logout),
+    path('register', register),
+    path('login', login),
+    path('refresh_token', refresh_access_token),
+    path('logout', logout),
     # stock data
-    path('search_tickers', views.get_search_tickers),
-    path('stock_aggregate_data', views.get_stock_aggregate_data),
-    path('ticker-details', views.get_ticker_details),
-    path('tickers-snapshot', views.get_tickers_snapshot),
+    path('search_tickers', get_search_tickers),
+    path('stock_aggregate_data', get_stock_aggregate_data),
+    path('ticker-details', get_ticker_details),
+    path('tickers-snapshot', get_tickers_snapshot),
+    path('get_ticker_list', get_ticker_list),
     # test
-    path('authenticated_request', views.authenticated_endpoint)
+    path('user_info', get_user_info)
 ]
