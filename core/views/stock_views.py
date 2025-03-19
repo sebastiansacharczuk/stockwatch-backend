@@ -1,12 +1,14 @@
 from django.http import JsonResponse
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated
 
+from core.authentication import CookieJWTAuthentication
 from core.models import TickerSymbol
 from core.serializers import TickerSymbolSerializer
 from core.stockapi.polygon_client import PolygonClient
 
 @api_view(['GET'])
+@authentication_classes([CookieJWTAuthentication])
 @permission_classes([IsAuthenticated])
 def get_search_tickers(request):
     try:
@@ -35,6 +37,7 @@ def get_search_tickers(request):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 @api_view(['GET'])
+@authentication_classes([CookieJWTAuthentication])
 @permission_classes([IsAuthenticated])
 def get_stock_aggregate_data(request):
     try:
@@ -71,6 +74,7 @@ def get_stock_aggregate_data(request):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 @api_view(['GET'])
+@authentication_classes([CookieJWTAuthentication])
 @permission_classes([IsAuthenticated])
 def get_ticker_details(request):
     try:
@@ -97,6 +101,7 @@ def get_ticker_details(request):
         }, status=500)
 
 @api_view(['GET'])
+@authentication_classes([CookieJWTAuthentication])
 @permission_classes([IsAuthenticated])
 def get_tickers_snapshot(request):
     try:
@@ -119,6 +124,7 @@ def get_tickers_snapshot(request):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 @api_view(['GET'])
+@authentication_classes([CookieJWTAuthentication])
 @permission_classes([IsAuthenticated])
 def refresh_tickers_db(request):
     try:
@@ -148,6 +154,7 @@ def refresh_tickers_db(request):
 
 
 @api_view(['GET'])
+@authentication_classes([CookieJWTAuthentication])
 @permission_classes([IsAuthenticated])
 def get_ticker_list(request):
     try:
@@ -159,13 +166,14 @@ def get_ticker_list(request):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 @api_view(['GET'])
+@authentication_classes([CookieJWTAuthentication])
 @permission_classes([IsAuthenticated])
 def get_news(request):
     try:
-        ticker = request.GET.get('ticker')
-        published_utc = request.GET.get('published_utc')
-        order = request.GET.get('order')
-        limit = int(request.GET.get('limit'))
+        ticker = request.GET.get('ticker', None)
+        published_utc = request.GET.get('published_utc', None)
+        order = request.GET.get('order', None)
+        limit = request.GET.get('limit', '50')
         sort = request.GET.get('sort')
 
         client = PolygonClient()
@@ -173,9 +181,9 @@ def get_news(request):
             ticker= ticker,
             published_utc= published_utc,
             order= order,
-            limit= limit,
+            limit= int(limit),
             sort= sort
         )
-        return JsonResponse({'status': 'success', 'data': data}, status=200)
+        return JsonResponse({'status': 'success', 'data': data.get("results")}, status=200)
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)

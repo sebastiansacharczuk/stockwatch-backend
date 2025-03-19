@@ -16,7 +16,8 @@ urlpatterns = [
     path('stock_aggregate_data', get_stock_aggregate_data),
     path('ticker-details', get_ticker_details),
     path('tickers-snapshot', get_tickers_snapshot),
-    path('get_ticker_list', get_ticker_list),
+    path('ticker_list', get_ticker_list),
+    path('news', get_news),
     # test
     path('user_info', get_user_info)
 ]
