@@ -35,4 +35,4 @@ def before_first_request():
     except Exception as e:
         print(e)
 
-before_first_request()
+# before_first_request()

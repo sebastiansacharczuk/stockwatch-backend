@@ -52,18 +52,39 @@ class WatchlistItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = WatchlistItem
         fields = ['id', 'ticker']
+        read_only_fields = ['id']
+
+    def validate_ticker(self, value):
+        watchlist = self.context.get('watchlist')
+        if watchlist:
+            qs = WatchlistItem.objects.filter(watchlist=watchlist, ticker=value)
+            if self.instance:  # Przy aktualizacji pomijamy bieżącą instancję
+                qs = qs.exclude(id=self.instance.id)
+            if qs.exists():
+                raise serializers.ValidationError("Ten ticker już istnieje w tej watchliście.")
+        return value
 
 class WatchlistSerializer(serializers.ModelSerializer):
     items = WatchlistItemSerializer(many=True, read_only=True)
-    user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
+    user = serializers.PrimaryKeyRelatedField(
+        read_only=True,
+        default=serializers.CurrentUserDefault()
+    )
 
     class Meta:
         model = Watchlist
-        fields = ['id', 'user', 'name', 'items']
+        fields = ['id', 'name', 'items', 'user']
 
-    def create(self, validated_data):
-        validated_data['user'] = self.context['request'].user
-        return super().create(validated_data)
+    def validate_name(self, value):
+        request = self.context.get('request')
+        if request and hasattr(request, 'user'):
+            user = request.user
+            qs = Watchlist.objects.filter(user=user, name=value)
+            if self.instance:  # Exclude current instance during update
+                qs = qs.exclude(id=self.instance.id)
+            if qs.exists():
+                raise serializers.ValidationError("Watchlista o tej nazwie już istnieje dla użytkownika.")
+        return value
 
 
 class TickerSymbolSerializer(serializers.ModelSerializer):

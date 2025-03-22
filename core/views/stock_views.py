@@ -16,7 +16,7 @@ def get_search_tickers(request):
         search = request.GET.get('search', '')
         limit = int(request.GET.get('limit', 50))
         date = request.GET.get('date')
-        ticker_type = request.GET.get('type')
+        ticker_type = request.GET.get('ticker_type')
         active = request.GET.get('active', 'true').lower() == 'true'
 
 
