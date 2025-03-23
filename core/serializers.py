@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model, authenticate
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from core.models import WatchlistItem, Watchlist, TickerSymbol
+from core.models import WatchlistItem, Watchlist
 
 User = get_user_model()
 
@@ -51,7 +51,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 class WatchlistItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = WatchlistItem
-        fields = ['id', 'ticker']
+        fields = ['id', 'ticker', 'name']
         read_only_fields = ['id']
 
     def validate_ticker(self, value):
@@ -85,9 +85,3 @@ class WatchlistSerializer(serializers.ModelSerializer):
             if qs.exists():
                 raise serializers.ValidationError("Watchlista o tej nazwie już istnieje dla użytkownika.")
         return value
-
-
-class TickerSymbolSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TickerSymbol
-        fields = ['ticker']  # Only include the ticker field

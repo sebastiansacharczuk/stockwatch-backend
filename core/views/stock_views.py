@@ -3,8 +3,6 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from rest_framework.permissions import IsAuthenticated
 
 from core.authentication import CookieJWTAuthentication
-from core.models import TickerSymbol
-from core.serializers import TickerSymbolSerializer
 from core.stockapi.polygon_client import PolygonClient
 
 @api_view(['GET'])
@@ -123,47 +121,6 @@ def get_tickers_snapshot(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
-@api_view(['GET'])
-@authentication_classes([CookieJWTAuthentication])
-@permission_classes([IsAuthenticated])
-def refresh_tickers_db(request):
-    try:
-        tickers = request.GET.get('tickers')
-        include_otc = request.GET.get('include_otc', 'false').lower() == 'true'
-
-        client = PolygonClient()
-        ticker_list = tickers.split(',') if tickers else None
-
-        data = client.get_tickers_snapshot(
-            tickers=ticker_list,
-            include_otc=include_otc
-        )
-
-        if 'tickers' in data:
-            for ticker_data in data['tickers']:
-                ticker_symbol = ticker_data.get('ticker')
-                if ticker_symbol:
-                    TickerSymbol.objects.get_or_create(ticker=ticker_symbol)
-
-        return JsonResponse({'status': 'success', 'data': data}, status=200)
-
-    except ValueError as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
-    except Exception as e:
-        return JsonResponse({'status': 'error', 'message':str(e)}, status=500)
-
-
-@api_view(['GET'])
-@authentication_classes([CookieJWTAuthentication])
-@permission_classes([IsAuthenticated])
-def get_ticker_list(request):
-    try:
-        tickers = TickerSymbol.objects.all()
-        serializer = TickerSymbolSerializer(tickers, many=True)
-        return JsonResponse({'status': 'success', 'data': serializer.data}, status=200)
-
-    except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 @api_view(['GET'])
 @authentication_classes([CookieJWTAuthentication])
